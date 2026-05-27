@@ -63,38 +63,37 @@ st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
 # TITLE
-st.subheader("Discharges by Primary Payer")
+tab1, tab2 = st.tabs(["Overview", "Insurance Analysis"])
+with tab1:
+    st.subheader("Project Overview")
+    st.write("""
+    This dashboard uses de-identified NY SPARCS hospital discharge data to explore
+    potentially avoidable ED-related utilization. Avoidable ED use is operationalized
+    as cases classified as minor severity of illness.
+    """)
 
-# GRAPH
-fig1, ax1 = plt.subplots()
+with tab2:
+    st.subheader("Discharges by Primary Payer")
 
-filtered_df["payment_typology_1"].value_counts().head(10).plot(
-    kind="bar",
-    ax=ax1
-)
+    fig1, ax1 = plt.subplots()
+    filtered_df["payment_typology_1"].value_counts().head(10).plot(
+        kind="bar",
+        ax=ax1
+    )
+    ax1.set_ylabel("Count")
+    ax1.set_xlabel("Primary Payer")
+    st.pyplot(fig1)
 
-ax1.set_ylabel("Count")
-ax1.set_xlabel("Primary Payer")
+    st.subheader("Potentially Avoidable ED Rate by Insurance Type")
 
-st.pyplot(fig1)
+    payer_summary = (
+        filtered_df.groupby("payment_typology_1")["avoidable_ed"]
+        .mean()
+        .sort_values(ascending=False)
+    )
 
-# SECOND GRAPH
-st.subheader("Potentially Avoidable ED Rate by Insurance Type")
-
-payer_summary = (
-    filtered_df.groupby("payment_typology_1")["avoidable_ed"]
-    .mean()
-    .sort_values(ascending=False)
-)
-
-fig2, ax2 = plt.subplots()
-
-payer_summary.plot(
-    kind="bar",
-    ax=ax2
-)
-
-ax2.set_ylabel("Avoidable ED Rate")
-ax2.set_xlabel("Primary Payer")
-
-st.pyplot(fig2)
+    fig2, ax2 = plt.subplots()
+    payer_summary.plot(kind="bar", ax=ax2)
+    ax2.set_ylabel("Avoidable ED Rate")
+    ax2.set_xlabel("Primary Payer")
+    st.pyplot(fig2)

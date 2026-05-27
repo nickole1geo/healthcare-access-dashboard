@@ -154,7 +154,7 @@ with tab2:
         .sort_values(ascending=False)
     )
 
-    fig1, ax1 = plt.subplots(figsize=(10,5))
+    fig1, ax1 = plt.subplots(figsize=(7,4))
 
     payer_summary.plot(kind="bar", ax=ax1)
 
@@ -307,7 +307,7 @@ with tab5:
             .sort_values(ascending=False)
         )
 
-        fig3, ax3 = plt.subplots(figsize=(10,5))
+        fig3, ax3 = plt.subplots(figsize=(7,4))
 
         mh_payer_summary.plot(kind="bar", ax=ax3)
 

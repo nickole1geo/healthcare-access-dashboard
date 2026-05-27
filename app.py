@@ -100,22 +100,47 @@ with tab1:
     st.header("Project Overview")
 
     st.write("""
-    This project evaluates potentially avoidable emergency department utilization
-    using NY SPARCS inpatient discharge data.
+    This dashboard explores patterns of potentially avoidable emergency
+    department (ED) utilization using de-identified New York SPARCS hospital
+    discharge data. The project was developed as an interactive computational
+    extension of broader population-health research examining structural
+    drivers of healthcare access and ED utilization.
     """)
 
     st.subheader("Methods")
-
+    
     st.write("""
-    Avoidable ED utilization was operationalized using APR Severity of Illness.
-    Visits categorized as 'Minor' severity were classified as potentially avoidable.
+    ED-related discharges were identified using the emergency department
+    indicator within the NY SPARCS dataset. Potentially avoidable ED utilization
+    was operationalized using APR Severity of Illness classifications, with
+    visits categorized as minor severity serving as a proxy measure for
+    potentially avoidable utilization.
+    
+    The dashboard integrates descriptive analysis, subgroup exploration,
+    policy-oriented interpretation, and exploratory machine learning methods
+    to examine how utilization patterns vary across insurance type,
+    mental-health-related visits, and other demographic factors.
     """)
-
-    st.subheader("Limitations")
-
+    
+    st.subheader("Interpretation")
+    
     st.write("""
-    Severity of illness is a proxy measure and does not represent a definitive
-    clinical determination of avoidability.
+    This project approaches avoidable ED utilization primarily as a structural
+    healthcare-access issue rather than a question of individual patient misuse.
+    Observed patterns may reflect differences in outpatient access, insurance
+    network adequacy, behavioral healthcare availability, referral systems,
+    and regional healthcare infrastructure.
+    """)
+    
+    st.subheader("Limitations")
+    
+    st.write("""
+    This dashboard is intended for exploratory and educational purposes and
+    does not represent a causal analysis. Severity of illness serves as a proxy
+    measure and does not constitute a definitive clinical determination of
+    avoidable ED utilization. Additionally, the live dashboard uses a public API
+    sample of SPARCS data for interactive performance optimization and may not
+    perfectly reproduce full-study analytic estimates.
     """)
 
 # INSURANCE TAB

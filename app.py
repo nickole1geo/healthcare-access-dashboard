@@ -63,7 +63,7 @@ st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
 # TITLE
-tab1, tab2, tab3 = st.tabs(["Overview", "Insurance Analysis", "Geography"])
+tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Insurance Analysis", "Geography", "Machine Learning"])
 with tab1:
     st.subheader("Project Overview")
     st.write("""
@@ -123,3 +123,49 @@ with tab3:
     ax4.set_ylabel("Avoidable ED Rate")
     ax4.set_xlabel("Hospital County")
     st.pyplot(fig4)
+
+with tab4:
+    st.subheader("Machine Learning Model")
+
+    st.write("""
+    This exploratory model predicts whether an ED-related discharge is classified
+    as potentially avoidable, using patient demographics, payer, hospital county,
+    and diagnosis category.
+    """)
+
+    features = [
+        "age_group",
+        "gender",
+        "race",
+        "ethnicity",
+        "payment_typology_1",
+        "hospital_county",
+        "ccsr_diagnosis_description"
+    ]
+
+    model_df = df[features + ["avoidable_ed"]].dropna()
+
+    X = pd.get_dummies(model_df[features], dummy_na=True)
+    y = model_df["avoidable_ed"]
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score, RocCurveDisplay
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X_train, y_train)
+
+    y_prob = model.predict_proba(X_test)[:, 1]
+
+    auc = roc_auc_score(y_test, y_prob)
+
+    st.metric("ROC AUC Score", f"{auc:.3f}")
+
+    fig5, ax5 = plt.subplots()
+    RocCurveDisplay.from_estimator(model, X_test, y_test, ax=ax5)
+    ax5.set_title("ROC Curve: Avoidable ED Prediction Model")
+    st.pyplot(fig5)

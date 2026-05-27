@@ -289,10 +289,10 @@ with tab5:
 
     mh_df_plot = mh_summary.reset_index()
 
-mh_df_plot.columns = [
-    "Mental Health Status",
-    "Avoidable ED Rate"
-]
+    mh_df_plot.columns = [
+        "Mental Health Status",
+        "Avoidable ED Rate"
+    ]
 
 fig2 = px.bar(
     mh_df_plot,

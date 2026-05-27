@@ -59,11 +59,12 @@ else:
 st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Overview",
     "Insurance Analysis",
     "Geography",
-    "Machine Learning"
+    "Machine Learning",
+    "Results & Discussion"
 ])
 
 with tab1:
@@ -221,3 +222,52 @@ with tab4:
     st.dataframe(
         top_features[["feature", "coefficient", "odds_ratio"]]
     )
+
+with tab5:
+    st.subheader("Key Results in Plain Language")
+
+    st.markdown("""
+    ### 1. Avoidable ED use varies by insurance type
+    In the research analysis, avoidable ED visits accounted for 18.3% of ED-related encounters overall.
+    Rates were highest among privately insured patients and uninsured patients, and lower among publicly insured patients.
+
+    ### 2. The insurance story changes after adjustment
+    Public insurance initially appeared strongly protective in the crude model. After adjusting for demographics,
+    geography, and clinical factors, public insurance still showed lower odds of avoidable ED use, but the effect became smaller.
+
+    ### 3. Mental health changes the pattern
+    Among visits with a mental health diagnosis, the public-insurance protective effect became stronger,
+    while the uninsured association reversed direction and became associated with higher odds of avoidable classification.
+
+    ### 4. Geography matters
+    The uninsured pattern differed between NYC and Non-NYC facilities, suggesting that safety-net infrastructure,
+    access barriers, and local care systems may shape ED use differently across regions.
+    """)
+
+    st.subheader("Interpretation")
+
+    st.write("""
+    These findings suggest that potentially avoidable ED use should not be framed simply as patient overuse.
+    Instead, ED use may reflect structural barriers in primary care access, specialty referral systems,
+    mental health access, insurance design, and safety-net availability.
+    """)
+
+    st.subheader("Policy and Health System Implications")
+
+    st.markdown("""
+    - Expand same-day and after-hours primary care access.
+    - Strengthen behavioral health access, especially for privately insured and uninsured patients.
+    - Improve specialty referral pathways so patients do not need to use the ED as a workaround.
+    - Compare NYC and Non-NYC safety-net structures to understand why uninsured patterns differ.
+    - Use predictive modeling carefully as a screening and planning tool, not as a causal explanation.
+    """)
+
+    st.subheader("Next Steps for AI / Machine Learning")
+
+    st.markdown("""
+    - Compare logistic regression with random forest and gradient boosting models.
+    - Add model fairness analysis by insurance type, race/ethnicity, age, and geography.
+    - Add explainability tools such as SHAP values to show why the model predicts higher or lower avoidability.
+    - Build a county-level risk visualization to support healthcare access planning.
+    - Eventually create a decision-support prototype for identifying structural access gaps.
+    """)

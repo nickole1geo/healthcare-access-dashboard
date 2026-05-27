@@ -282,13 +282,21 @@ with tab6:
     use the ED as an entry point into care.
     """)
 
-    mental_health_terms = ["Mental Diseases and Disorders"]
+    mental_health_terms = [
+    "Mental Diseases and Disorders",
+    "Mental Diseases & Disorders"
+]
 
     df["mental_health_dx"] = df["apr_mdc_description"].isin(mental_health_terms)
 
-    mh_summary = df.groupby("mental_health_dx")["avoidable_ed"].mean()
-
-    mh_summary.index = ["No Mental Health Diagnosis", "Mental Health Diagnosis"]
+    mh_summary = (
+    df.groupby("mental_health_dx")["avoidable_ed"]
+    .mean()
+    .rename(index={
+        False: "No Mental Health Diagnosis",
+        True: "Mental Health Diagnosis"
+    })
+)
 
     st.subheader("Avoidable ED Rate by Mental Health Diagnosis")
 

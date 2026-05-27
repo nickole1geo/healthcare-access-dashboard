@@ -224,7 +224,7 @@ with tab4:
     )
 
 with tab5:
-    st.subheader("Key Results in Plain Language")
+    st.subheader("Key Results")
 
     st.markdown("""
     ### 1. Avoidable ED use varies by insurance type

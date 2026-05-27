@@ -12,8 +12,20 @@ This dashboard explores potentially avoidable ED-related utilization
 using de-identified NY SPARCS hospital discharge data.
 """)
 
-url = "https://health.data.ny.gov/resource/5dtw-tffi.csv?$limit=50000"
-df = pd.read_csv(url)
+@st.cache_data
+def load_sparcs_data(limit=250000):
+    base_url = "https://health.data.ny.gov/resource/5dtw-tffi.csv"
+    chunks = []
+    chunk_size = 50000
+
+    for offset in range(0, limit, chunk_size):
+        url = f"{base_url}?$limit={chunk_size}&$offset={offset}"
+        chunk = pd.read_csv(url)
+        chunks.append(chunk)
+
+    return pd.concat(chunks, ignore_index=True)
+
+df = load_sparcs_data(limit=250000)
 
 df.columns = (
     df.columns

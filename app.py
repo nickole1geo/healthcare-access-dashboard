@@ -59,12 +59,13 @@ else:
 st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Overview",
     "Insurance Analysis",
     "Geography",
     "Machine Learning",
-    "Results & Discussion"
+    "Results & Discussion",
+    "Mental Health Analysis"
 ])
 
 with tab1:
@@ -270,4 +271,66 @@ with tab5:
     - Add explainability tools such as SHAP values to show why the model predicts higher or lower avoidability.
     - Build a county-level risk visualization to support healthcare access planning.
     - Eventually create a decision-support prototype for identifying structural access gaps.
+    """)
+with tab6:
+    st.subheader("Mental Health and Avoidable ED Utilization")
+
+    st.write("""
+    This section explores whether potentially avoidable ED-related utilization differs
+    for visits involving mental health diagnoses. This matters because behavioral health
+    access, insurance networks, and crisis-care availability may shape whether patients
+    use the ED as an entry point into care.
+    """)
+
+    mental_health_terms = ["Mental Diseases and Disorders"]
+
+    df["mental_health_dx"] = df["apr_mdc_description"].isin(mental_health_terms)
+
+    mh_summary = df.groupby("mental_health_dx")["avoidable_ed"].mean()
+
+    mh_summary.index = ["No Mental Health Diagnosis", "Mental Health Diagnosis"]
+
+    st.subheader("Avoidable ED Rate by Mental Health Diagnosis")
+
+    fig7, ax7 = plt.subplots(figsize=(8, 5))
+    mh_summary.plot(kind="bar", ax=ax7)
+    ax7.set_ylabel("Avoidable ED Rate")
+    ax7.set_xlabel("")
+    ax7.tick_params(axis="x", rotation=0)
+    st.pyplot(fig7)
+
+    st.subheader("Avoidable ED Rate by Insurance Type Among Mental Health Visits")
+
+    mh_df = df[df["mental_health_dx"] == True]
+
+    mh_payer_summary = (
+        mh_df.groupby("payment_typology_1")["avoidable_ed"]
+        .mean()
+        .sort_values(ascending=False)
+    )
+
+    fig8, ax8 = plt.subplots(figsize=(10, 5))
+    mh_payer_summary.plot(kind="bar", ax=ax8)
+    ax8.set_ylabel("Avoidable ED Rate")
+    ax8.set_xlabel("Primary Payer")
+    ax8.tick_params(axis="x", rotation=45)
+    st.pyplot(fig8)
+
+    st.subheader("Interpretation")
+
+    st.write("""
+    Differences in avoidable ED rates among mental health-related visits may reflect
+    gaps in outpatient behavioral health access, crisis stabilization options, insurance
+    network adequacy, and the availability of timely psychiatric follow-up. These patterns
+    should be interpreted as structural access signals rather than individual patient misuse.
+    """)
+
+    st.subheader("Policy Implications")
+
+    st.markdown("""
+    - Expand outpatient behavioral health access and same-day crisis care.
+    - Improve insurance network adequacy for mental health providers.
+    - Strengthen ED-to-community mental health referral pathways.
+    - Evaluate whether uninsured patients face distinct barriers in NYC versus Non-NYC settings.
+    - Use predictive modeling to identify where behavioral health access gaps may be most concentrated.
     """)

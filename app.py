@@ -63,7 +63,7 @@ st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
 # TITLE
-tab1, tab2 = st.tabs(["Overview", "Insurance Analysis"])
+tab1, tab2, tab3 = st.tabs(["Overview", "Insurance Analysis", "Geography"])
 with tab1:
     st.subheader("Project Overview")
     st.write("""
@@ -97,3 +97,29 @@ with tab2:
     ax2.set_ylabel("Avoidable ED Rate")
     ax2.set_xlabel("Primary Payer")
     st.pyplot(fig2)
+
+with tab3:
+    st.subheader("Top Counties by ED-Related Discharges")
+
+    county_counts = filtered_df["hospital_county"].value_counts().head(15)
+
+    fig3, ax3 = plt.subplots()
+    county_counts.plot(kind="bar", ax=ax3)
+    ax3.set_ylabel("Number of ED-Related Discharges")
+    ax3.set_xlabel("Hospital County")
+    st.pyplot(fig3)
+
+    st.subheader("Potentially Avoidable ED Rate by County")
+
+    county_avoidable = (
+        filtered_df.groupby("hospital_county")["avoidable_ed"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(15)
+    )
+
+    fig4, ax4 = plt.subplots()
+    county_avoidable.plot(kind="bar", ax=ax4)
+    ax4.set_ylabel("Avoidable ED Rate")
+    ax4.set_xlabel("Hospital County")
+    st.pyplot(fig4)

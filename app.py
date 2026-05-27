@@ -267,6 +267,7 @@ with tab4:
 
 # MENTAL HEALTH TAB
 with tab5:
+    with tab5:
 
     st.header("Mental Health Analysis")
 
@@ -280,15 +281,13 @@ with tab5:
     mh_summary = (
         df.groupby("mental_health_dx")["avoidable_ed"]
         .mean()
+        .rename(index={
+            False: "No Mental Health Diagnosis",
+            True: "Mental Health Diagnosis"
+        })
     )
 
-    mh_summary.index = [
-        "No Mental Health Diagnosis",
-        "Mental Health Diagnosis"
-    ]
-
     mh_df_plot = mh_summary.reset_index()
-
     mh_df_plot.columns = [
         "Mental Health Status",
         "Avoidable ED Rate"
@@ -303,41 +302,57 @@ with tab5:
         color_continuous_scale="Blues",
         title="Avoidable ED Utilization by Mental Health Status"
     )
-    
+
     fig2.update_layout(
         height=400,
         title_font_size=22,
-        font_size=14
+        font_size=14,
+        margin=dict(l=20, r=20, t=60, b=20)
     )
-    
+
     st.plotly_chart(fig2, use_container_width=True)
-    
+
     mh_df = df[df["mental_health_dx"] == True]
-    
+
     st.subheader("Avoidable ED Rate by Insurance Type Among Mental Health Visits")
-    
+
     if len(mh_df) > 0:
-    
+
         mh_payer_summary = (
             mh_df.groupby("payment_typology_1")["avoidable_ed"]
             .mean()
             .sort_values(ascending=False)
+            .reset_index()
         )
-    
-        fig3, ax3 = plt.subplots(figsize=(7,4))
-    
-        mh_payer_summary.plot(kind="bar", ax=ax3)
-    
-        ax3.set_ylabel("Avoidable ED Rate")
-        ax3.set_xlabel("Insurance Type")
-        ax3.tick_params(axis="x", rotation=45)
-    
-        st.pyplot(fig3)
-    
-        st.subheader("Interpretation")
-    
-        st.write("""
-        Mental health-related ED utilization may reflect barriers in
-        outpatient psychiatric access, crisis intervention availability,
-        and continuity of behavioral healthcare.
-        """)
+
+        mh_payer_summary.columns = ["Insurance Type", "Avoidable ED Rate"]
+
+        fig3 = px.bar(
+            mh_payer_summary,
+            x="Insurance Type",
+            y="Avoidable ED Rate",
+            color="Avoidable ED Rate",
+            color_continuous_scale="Blues",
+            title="Avoidable ED Rate by Insurance Type Among Mental Health Visits"
+        )
+
+        fig3.update_layout(
+            height=400,
+            title_font_size=22,
+            font_size=14,
+            xaxis_tickangle=-45,
+            margin=dict(l=20, r=20, t=60, b=120)
+        )
+
+        st.plotly_chart(fig3, use_container_width=True)
+
+    else:
+        st.warning("No mental health diagnosis records found in this sample.")
+
+    st.subheader("Interpretation")
+
+    st.write("""
+    Mental health-related ED utilization may reflect barriers in
+    outpatient psychiatric access, crisis intervention availability,
+    and continuity of behavioral healthcare.
+    """)

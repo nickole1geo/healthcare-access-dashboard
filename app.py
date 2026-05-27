@@ -71,6 +71,24 @@ with tab1:
     potentially avoidable ED-related utilization. Avoidable ED use is operationalized
     as cases classified as minor severity of illness.
     """)
+        st.subheader("Methods")
+
+    st.write("""
+    The analysis uses the public de-identified NY SPARCS hospital discharge dataset.
+    Records were filtered to ED-related discharges using the emergency department indicator.
+    Potentially avoidable ED-related utilization was operationalized as cases classified
+    as minor severity of illness using APR severity.
+    """)
+
+    st.subheader("Limitations")
+
+    st.write("""
+    This dashboard is exploratory and should not be interpreted as causal evidence.
+    Because avoidable ED use is operationalized using severity of illness, the model
+    predicts a proxy measure rather than a definitive clinical determination of avoidability.
+    Results may also be influenced by coding practices, diagnosis mix, and differences in
+    hospital reporting.
+    """)
 
 with tab2:
     st.subheader("Discharges by Primary Payer")

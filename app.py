@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
-plt.rcParams.update({
-    "figure.autolayout": True
-})
+plt.rcParams.update({"figure.autolayout": True})
 
-# PAGE TITLE
 st.title("Healthcare Access Dashboard Using NY SPARCS Data")
 
 st.write("""
@@ -14,12 +12,9 @@ This dashboard explores potentially avoidable ED-related utilization
 using de-identified NY SPARCS hospital discharge data.
 """)
 
-# LOAD DATA
 url = "https://health.data.ny.gov/resource/5dtw-tffi.csv?$limit=50000"
-
 df = pd.read_csv(url)
 
-# CLEAN COLUMN NAMES
 df.columns = (
     df.columns
     .str.lower()
@@ -28,10 +23,8 @@ df.columns = (
     .str.replace("-", "_")
 )
 
-# FILTER TO ED CASES
 df = df[df["emergency_department_indicator"].str.upper() == "Y"].copy()
 
-# CREATE OUTCOME VARIABLE
 df["avoidable_ed"] = (
     df["apr_severity_of_illness"]
     .str.lower()
@@ -62,12 +55,17 @@ if selected_payer == "All":
     filtered_df = df.copy()
 else:
     filtered_df = df[df["payment_typology_1"] == selected_payer]
-    
+
 st.write(f"Current filter: {selected_payer}")
 st.write(f"Records shown: {len(filtered_df)}")
 
-# TITLE
-tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Insurance Analysis", "Geography", "Machine Learning"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Overview",
+    "Insurance Analysis",
+    "Geography",
+    "Machine Learning"
+])
+
 with tab1:
     st.subheader("Project Overview")
     st.write("""
@@ -75,8 +73,8 @@ with tab1:
     potentially avoidable ED-related utilization. Avoidable ED use is operationalized
     as cases classified as minor severity of illness.
     """)
-    st.subheader("Methods")
 
+    st.subheader("Methods")
     st.write("""
     The analysis uses the public de-identified NY SPARCS hospital discharge dataset.
     Records were filtered to ED-related discharges using the emergency department indicator.
@@ -85,7 +83,6 @@ with tab1:
     """)
 
     st.subheader("Limitations")
-
     st.write("""
     This dashboard is exploratory and should not be interpreted as causal evidence.
     Because avoidable ED use is operationalized using severity of illness, the model
@@ -104,6 +101,7 @@ with tab2:
     )
     ax1.set_ylabel("Count")
     ax1.set_xlabel("Primary Payer")
+    ax1.tick_params(axis="x", rotation=45)
     st.pyplot(fig1)
 
     st.subheader("Potentially Avoidable ED Rate by Insurance Type")
@@ -114,10 +112,11 @@ with tab2:
         .sort_values(ascending=False)
     )
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    fig2, ax2 = plt.subplots(figsize=(10, 5))
     payer_summary.plot(kind="bar", ax=ax2)
     ax2.set_ylabel("Avoidable ED Rate")
     ax2.set_xlabel("Primary Payer")
+    ax2.tick_params(axis="x", rotation=45)
     st.pyplot(fig2)
 
 with tab3:
@@ -125,10 +124,11 @@ with tab3:
 
     county_counts = filtered_df["hospital_county"].value_counts().head(15)
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    fig3, ax3 = plt.subplots(figsize=(10, 5))
     county_counts.plot(kind="bar", ax=ax3)
     ax3.set_ylabel("Number of ED-Related Discharges")
     ax3.set_xlabel("Hospital County")
+    ax3.tick_params(axis="x", rotation=45)
     st.pyplot(fig3)
 
     st.subheader("Potentially Avoidable ED Rate by County")
@@ -140,10 +140,11 @@ with tab3:
         .head(15)
     )
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    fig4, ax4 = plt.subplots(figsize=(10, 5))
     county_avoidable.plot(kind="bar", ax=ax4)
     ax4.set_ylabel("Avoidable ED Rate")
     ax4.set_xlabel("Hospital County")
+    ax4.tick_params(axis="x", rotation=45)
     st.pyplot(fig4)
 
 with tab4:
@@ -175,26 +176,27 @@ with tab4:
     from sklearn.metrics import roc_auc_score, RocCurveDisplay
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
     )
 
     model = LogisticRegression(max_iter=1000)
     model.fit(X_train, y_train)
 
     y_prob = model.predict_proba(X_test)[:, 1]
-
     auc = roc_auc_score(y_test, y_prob)
 
     st.metric("ROC AUC Score", f"{auc:.3f}")
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    fig5, ax5 = plt.subplots(figsize=(10, 5))
     RocCurveDisplay.from_estimator(model, X_test, y_test, ax=ax5)
     ax5.set_title("ROC Curve: Avoidable ED Prediction Model")
     st.pyplot(fig5)
 
     st.subheader("Top Predictors of Potentially Avoidable ED Classification")
-
-    import numpy as np
 
     coef_df = pd.DataFrame({
         "feature": X_train.columns,
@@ -210,7 +212,7 @@ with tab4:
         .sort_values("coefficient")
     )
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    fig6, ax6 = plt.subplots(figsize=(10, 5))
     ax6.barh(top_features["feature"], top_features["coefficient"])
     ax6.set_xlabel("Model Coefficient")
     ax6.set_title("Top Model Predictors")

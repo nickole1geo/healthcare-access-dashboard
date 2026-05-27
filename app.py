@@ -1,10 +1,14 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 import numpy as np
 
-plt.rcParams.update({"figure.autolayout": True})
+st.set_page_config(layout="wide")
 
+# TITLE
 st.title("Healthcare Access Dashboard Using NY SPARCS Data")
 
 st.write("""
@@ -12,113 +16,93 @@ This dashboard explores potentially avoidable ED-related utilization
 using de-identified NY SPARCS hospital discharge data.
 """)
 
-@st.cache_data
-def load_sparcs_data(limit=50000):
-    base_url = "https://health.data.ny.gov/resource/5dtw-tffi.csv"
-    chunks = []
-    chunk_size = 50000
+# LOAD DATA
+url = "https://health.data.ny.gov/resource/5dtw-tffi.csv?$limit=50000"
 
-    for offset in range(0, limit, chunk_size):
-        url = f"{base_url}?$limit={chunk_size}&$offset={offset}"
-        chunk = pd.read_csv(url)
-        chunks.append(chunk)
+df = pd.read_csv(url, low_memory=False)
 
-    return pd.concat(chunks, ignore_index=True)
+# CLEAN DATA
+df.columns = df.columns.str.lower()
 
-df = load_sparcs_data(limit=50000)
-
-df.columns = (
-    df.columns
-    .str.lower()
-    .str.replace(" ", "_")
-    .str.replace("/", "_")
-    .str.replace("-", "_")
+# CREATE AVOIDABLE ED VARIABLE
+df["avoidable_ed"] = np.where(
+    df["apr_severity_of_illness_description"] == "Minor",
+    1,
+    0
 )
 
-df = df[df["emergency_department_indicator"].str.upper() == "Y"].copy()
+# FILTERS
+insurance_options = sorted(df["payment_typology_1"].dropna().unique())
 
-df["avoidable_ed"] = (
-    df["apr_severity_of_illness"]
-    .str.lower()
-    .eq("minor")
-    .astype(int)
+selected_insurance = st.sidebar.selectbox(
+    "Select Insurance Type",
+    ["All"] + insurance_options
 )
 
-st.subheader("Key Metrics")
+if selected_insurance != "All":
+    filtered_df = df[df["payment_typology_1"] == selected_insurance]
+else:
+    filtered_df = df.copy()
+
+# KEY METRICS
+st.header("Key Metrics")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric("Total ED-Related Cases", len(df))
+    st.metric(
+        "Total ED-Related Cases",
+        len(filtered_df)
+    )
 
 with col2:
-    st.metric("Potentially Avoidable ED Rate", f"{df['avoidable_ed'].mean():.1%}")
+    avoidable_rate = round(
+        filtered_df["avoidable_ed"].mean() * 100,
+        1
+    )
 
-st.sidebar.header("Filters")
+    st.metric(
+        "Potentially Avoidable ED Rate",
+        f"{avoidable_rate}%"
+    )
 
-payer_options = df["payment_typology_1"].dropna().unique()
-
-selected_payer = st.sidebar.selectbox(
-    "Select Insurance Type",
-    ["All"] + list(payer_options)
-)
-
-if selected_payer == "All":
-    filtered_df = df.copy()
-else:
-    filtered_df = df[df["payment_typology_1"] == selected_payer]
-
-st.write(f"Current filter: {selected_payer}")
-st.write(f"Records shown: {len(filtered_df)}")
-
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+# TABS
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Overview",
     "Insurance Analysis",
-    "Geography",
     "Machine Learning",
     "Results & Discussion",
     "Mental Health Analysis"
 ])
 
+# OVERVIEW TAB
 with tab1:
-    st.subheader("Project Overview")
+
+    st.header("Project Overview")
+
     st.write("""
-    This dashboard uses de-identified NY SPARCS hospital discharge data to explore
-    potentially avoidable ED-related utilization. Avoidable ED use is operationalized
-    as cases classified as minor severity of illness.
+    This project evaluates potentially avoidable emergency department utilization
+    using NY SPARCS inpatient discharge data.
     """)
 
     st.subheader("Methods")
+
     st.write("""
-    The analysis uses the public de-identified NY SPARCS hospital discharge dataset.
-    Records were filtered to ED-related discharges using the emergency department indicator.
-    Potentially avoidable ED-related utilization was operationalized as cases classified
-    as minor severity of illness using APR severity.
+    Avoidable ED utilization was operationalized using APR Severity of Illness.
+    Visits categorized as 'Minor' severity were classified as potentially avoidable.
     """)
 
     st.subheader("Limitations")
+
     st.write("""
-    This dashboard is exploratory and should not be interpreted as causal evidence.
-    Because avoidable ED use is operationalized using severity of illness, the model
-    predicts a proxy measure rather than a definitive clinical determination of avoidability.
-    Results may also be influenced by coding practices, diagnosis mix, and differences in
-    hospital reporting.
+    Severity of illness is a proxy measure and does not represent a definitive
+    clinical determination of avoidability.
     """)
 
+# INSURANCE TAB
 with tab2:
-    st.subheader("Discharges by Primary Payer")
 
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
-    filtered_df["payment_typology_1"].value_counts().head(10).plot(
-        kind="bar",
-        ax=ax1
-    )
-    ax1.set_ylabel("Count")
-    ax1.set_xlabel("Primary Payer")
-    ax1.tick_params(axis="x", rotation=45)
-    st.pyplot(fig1)
-
-    st.subheader("Potentially Avoidable ED Rate by Insurance Type")
+    st.header("Insurance Analysis")
 
     payer_summary = (
         filtered_df.groupby("payment_typology_1")["avoidable_ed"]
@@ -126,174 +110,121 @@ with tab2:
         .sort_values(ascending=False)
     )
 
-    fig2, ax2 = plt.subplots(figsize=(10, 5))
-    payer_summary.plot(kind="bar", ax=ax2)
-    ax2.set_ylabel("Avoidable ED Rate")
-    ax2.set_xlabel("Primary Payer")
-    ax2.tick_params(axis="x", rotation=45)
-    st.pyplot(fig2)
+    fig1, ax1 = plt.subplots(figsize=(10,5))
 
-with tab3:
-    st.subheader("Top Counties by ED-Related Discharges")
+    payer_summary.plot(kind="bar", ax=ax1)
 
-    county_counts = filtered_df["hospital_county"].value_counts().head(15)
+    ax1.set_ylabel("Avoidable ED Rate")
+    ax1.set_xlabel("Insurance Type")
+    ax1.tick_params(axis="x", rotation=45)
 
-    fig3, ax3 = plt.subplots(figsize=(10, 5))
-    county_counts.plot(kind="bar", ax=ax3)
-    ax3.set_ylabel("Number of ED-Related Discharges")
-    ax3.set_xlabel("Hospital County")
-    ax3.tick_params(axis="x", rotation=45)
-    st.pyplot(fig3)
+    st.pyplot(fig1)
 
-    st.subheader("Potentially Avoidable ED Rate by County")
-
-    county_avoidable = (
-        filtered_df.groupby("hospital_county")["avoidable_ed"]
-        .mean()
-        .sort_values(ascending=False)
-        .head(15)
-    )
-
-    fig4, ax4 = plt.subplots(figsize=(10, 5))
-    county_avoidable.plot(kind="bar", ax=ax4)
-    ax4.set_ylabel("Avoidable ED Rate")
-    ax4.set_xlabel("Hospital County")
-    ax4.tick_params(axis="x", rotation=45)
-    st.pyplot(fig4)
-
-with tab4:
-    st.subheader("Machine Learning Model")
+    st.subheader("Interpretation")
 
     st.write("""
-    This exploratory model predicts whether an ED-related discharge is classified
-    as potentially avoidable, using patient demographics, payer, hospital county,
-    and diagnosis category.
+    Differences across insurance categories may reflect variation in
+    outpatient access, care coordination, referral systems,
+    and healthcare utilization patterns.
     """)
+
+# MACHINE LEARNING TAB
+with tab3:
+
+    st.header("Machine Learning Prediction Model")
+
+    ml_df = filtered_df.copy()
 
     features = [
         "age_group",
         "gender",
-        "race",
-        "ethnicity",
-        "payment_typology_1",
-        "hospital_county",
-        "ccsr_diagnosis_description"
+        "payment_typology_1"
     ]
 
-    model_df = df[features + ["avoidable_ed"]].dropna()
+    ml_df = ml_df.dropna(subset=features)
 
-    X = pd.get_dummies(model_df[features], dummy_na=True)
-    y = model_df["avoidable_ed"]
+    X = pd.get_dummies(
+        ml_df[features],
+        drop_first=True
+    )
 
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import roc_auc_score, RocCurveDisplay
+    y = ml_df["avoidable_ed"]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
         test_size=0.2,
-        random_state=42,
-        stratify=y
+        random_state=42
     )
 
     model = LogisticRegression(max_iter=1000)
+
     model.fit(X_train, y_train)
 
-    y_prob = model.predict_proba(X_test)[:, 1]
-    auc = roc_auc_score(y_test, y_prob)
+    predictions = model.predict(X_test)
 
-    st.metric("ROC AUC Score", f"{auc:.3f}")
+    accuracy = accuracy_score(y_test, predictions)
 
-    fig5, ax5 = plt.subplots(figsize=(10, 5))
-    RocCurveDisplay.from_estimator(model, X_test, y_test, ax=ax5)
-    ax5.set_title("ROC Curve: Avoidable ED Prediction Model")
-    st.pyplot(fig5)
-
-    st.subheader("Top Predictors of Potentially Avoidable ED Classification")
+    st.metric(
+        "Model Accuracy",
+        round(accuracy, 3)
+    )
 
     coef_df = pd.DataFrame({
-        "feature": X_train.columns,
-        "coefficient": model.coef_[0],
-        "odds_ratio": np.exp(model.coef_[0])
+        "feature": X.columns,
+        "coefficient": model.coef_[0]
     })
 
-    coef_df["abs_coefficient"] = coef_df["coefficient"].abs()
+    coef_df["odds_ratio"] = np.exp(coef_df["coefficient"])
 
-    top_features = (
-        coef_df.sort_values("abs_coefficient", ascending=False)
-        .head(15)
-        .sort_values("coefficient")
-    )
+    top_features = coef_df.sort_values(
+        by="odds_ratio",
+        ascending=False
+    ).head(10)
 
-    fig6, ax6 = plt.subplots(figsize=(10, 5))
-    ax6.barh(top_features["feature"], top_features["coefficient"])
-    ax6.set_xlabel("Model Coefficient")
-    ax6.set_title("Top Model Predictors")
-    st.pyplot(fig6)
+    st.subheader("Top Predictive Features")
 
-    st.dataframe(
-        top_features[["feature", "coefficient", "odds_ratio"]]
-    )
+    st.dataframe(top_features)
 
+# RESULTS TAB
+with tab4:
+
+    st.header("Results & Discussion")
+
+    st.subheader("Key Findings")
+
+    st.markdown("""
+    - Avoidable ED utilization varied across insurance groups
+    - Mental health-related visits showed important disparities
+    - Logistic regression identified demographic and insurance-related predictors
+    - Results suggest structural barriers in outpatient access
+    """)
+
+    st.subheader("Policy Implications")
+
+    st.markdown("""
+    - Expand outpatient preventive care access
+    - Improve behavioral healthcare infrastructure
+    - Increase insurance network adequacy
+    - Strengthen care coordination systems
+    - Improve crisis stabilization resources
+    """)
+
+    st.subheader("Future Directions")
+
+    st.markdown("""
+    - Add geographic hotspot mapping
+    - Build advanced ML models
+    - Develop predictive risk stratification
+    - Compare across multiple years of SPARCS data
+    - Integrate AI-driven forecasting approaches
+    """)
+
+# MENTAL HEALTH TAB
 with tab5:
-    st.subheader("Key Results")
 
-    st.markdown("""
-    ### 1. Avoidable ED use varies by insurance type
-    In the research analysis, avoidable ED visits accounted for 18.3% of ED-related encounters overall.
-    Rates were highest among privately insured patients and uninsured patients, and lower among publicly insured patients.
+    st.header("Mental Health Analysis")
 
-    ### 2. The insurance story changes after adjustment
-    Public insurance initially appeared strongly protective in the crude model. After adjusting for demographics,
-    geography, and clinical factors, public insurance still showed lower odds of avoidable ED use, but the effect became smaller.
-
-    ### 3. Mental health changes the pattern
-    Among visits with a mental health diagnosis, the public-insurance protective effect became stronger,
-    while the uninsured association reversed direction and became associated with higher odds of avoidable classification.
-
-    ### 4. Geography matters
-    The uninsured pattern differed between NYC and Non-NYC facilities, suggesting that safety-net infrastructure,
-    access barriers, and local care systems may shape ED use differently across regions.
-    """)
-
-    st.subheader("Interpretation")
-
-    st.write("""
-    These findings suggest that potentially avoidable ED use should not be framed simply as patient overuse.
-    Instead, ED use may reflect structural barriers in primary care access, specialty referral systems,
-    mental health access, insurance design, and safety-net availability.
-    """)
-
-    st.subheader("Policy and Health System Implications")
-
-    st.markdown("""
-    - Expand same-day and after-hours primary care access.
-    - Strengthen behavioral health access, especially for privately insured and uninsured patients.
-    - Improve specialty referral pathways so patients do not need to use the ED as a workaround.
-    - Compare NYC and Non-NYC safety-net structures to understand why uninsured patterns differ.
-    - Use predictive modeling carefully as a screening and planning tool, not as a causal explanation.
-    """)
-
-    st.subheader("Next Steps for AI / Machine Learning")
-
-    st.markdown("""
-    - Compare logistic regression with random forest and gradient boosting models.
-    - Add model fairness analysis by insurance type, race/ethnicity, age, and geography.
-    - Add explainability tools such as SHAP values to show why the model predicts higher or lower avoidability.
-    - Build a county-level risk visualization to support healthcare access planning.
-    - Eventually create a decision-support prototype for identifying structural access gaps.
-    """)
-
-with tab6:
-    st.subheader("Mental Health and Avoidable ED Utilization")
-
-    st.write("""
-    This section explores whether potentially avoidable ED-related utilization differs
-    for visits involving mental health diagnoses.
-    """)
-
-    # Create mental health indicator
     df["mental_health_dx"] = (
         df["apr_mdc_description"]
         .astype(str)
@@ -301,64 +232,51 @@ with tab6:
         .str.contains("mental", na=False)
     )
 
-    # Summary rates
     mh_summary = (
         df.groupby("mental_health_dx")["avoidable_ed"]
         .mean()
-        .rename(index={
-            False: "No Mental Health Diagnosis",
-            True: "Mental Health Diagnosis"
-        })
     )
 
-    st.subheader("Avoidable ED Rate by Mental Health Diagnosis")
+    mh_summary.index = [
+        "No Mental Health Diagnosis",
+        "Mental Health Diagnosis"
+    ]
 
-    fig7, ax7 = plt.subplots(figsize=(8,5))
-    mh_summary.plot(kind="bar", ax=ax7)
+    fig2, ax2 = plt.subplots(figsize=(8,5))
 
-    ax7.set_ylabel("Avoidable ED Rate")
-    ax7.set_xlabel("")
-    ax7.tick_params(axis="x", rotation=0)
+    mh_summary.plot(kind="bar", ax=ax2)
 
-    st.pyplot(fig7)
+    ax2.set_ylabel("Avoidable ED Rate")
+    ax2.tick_params(axis="x", rotation=0)
 
-    # Mental health subset
+    st.pyplot(fig2)
+
     mh_df = df[df["mental_health_dx"] == True]
 
     st.subheader("Avoidable ED Rate by Insurance Type Among Mental Health Visits")
 
-    if mh_df.empty:
-        st.warning("No mental health diagnosis records found.")
-    else:
+    if len(mh_df) > 0:
+
         mh_payer_summary = (
             mh_df.groupby("payment_typology_1")["avoidable_ed"]
             .mean()
             .sort_values(ascending=False)
         )
 
-        fig8, ax8 = plt.subplots(figsize=(10,5))
+        fig3, ax3 = plt.subplots(figsize=(10,5))
 
-        mh_payer_summary.plot(kind="bar", ax=ax8)
+        mh_payer_summary.plot(kind="bar", ax=ax3)
 
-        ax8.set_ylabel("Avoidable ED Rate")
-        ax8.set_xlabel("Insurance Type")
-        ax8.tick_params(axis="x", rotation=45)
+        ax3.set_ylabel("Avoidable ED Rate")
+        ax3.set_xlabel("Insurance Type")
+        ax3.tick_params(axis="x", rotation=45)
 
-        st.pyplot(fig8)
+        st.pyplot(fig3)
 
     st.subheader("Interpretation")
 
     st.write("""
-    Mental health-related ED utilization may reflect structural barriers to outpatient
-    behavioral healthcare, insurance network limitations, and crisis-care accessibility.
-    """)
-
-    st.subheader("Policy Implications")
-
-    st.markdown("""
-    - Expand outpatient behavioral healthcare access
-    - Improve insurance network adequacy
-    - Strengthen ED-to-community referral systems
-    - Increase crisis stabilization resources
-    - Address regional disparities in psychiatric access
+    Mental health-related ED utilization may reflect barriers in
+    outpatient psychiatric access, crisis intervention availability,
+    and continuity of behavioral healthcare.
     """)

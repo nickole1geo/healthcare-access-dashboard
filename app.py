@@ -26,7 +26,7 @@ df.columns = df.columns.str.lower()
 
 # CREATE AVOIDABLE ED VARIABLE
 df["avoidable_ed"] = np.where(
-    df["apr_severity_of_illness_description"] == "Minor",
+    df["apr_severity_of_illness"].astype(str).str.lower() == "minor",
     1,
     0
 )

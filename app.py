@@ -13,7 +13,7 @@ using de-identified NY SPARCS hospital discharge data.
 """)
 
 @st.cache_data
-def load_sparcs_data(limit=250000):
+def load_sparcs_data(limit=50000):
     base_url = "https://health.data.ny.gov/resource/5dtw-tffi.csv"
     chunks = []
     chunk_size = 50000
@@ -25,7 +25,7 @@ def load_sparcs_data(limit=250000):
 
     return pd.concat(chunks, ignore_index=True)
 
-df = load_sparcs_data(limit=250000)
+df = load_sparcs_data(limit=50000)
 
 df.columns = (
     df.columns

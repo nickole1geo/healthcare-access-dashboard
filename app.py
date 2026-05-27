@@ -331,13 +331,13 @@ with tab5:
         )
 
         mh_payer_summary.columns = ["Insurance Type", "Avoidable ED Rate"]
-
+        
         fig3 = px.bar(
             mh_payer_summary,
             x="Insurance Type",
             y="Avoidable ED Rate",
-            color="Avoidable ED Rate",
-            color_continuous_scale="Blues",
+            text="Avoidable ED Rate",
+            color_discrete_sequence=["#1f77b4"],
             title="Avoidable ED Rate by Insurance Type Among Mental Health Visits"
         )
 
@@ -345,10 +345,14 @@ with tab5:
             height=400,
             title_font_size=22,
             font_size=14,
-            xaxis_tickangle=-45,
-            margin=dict(l=20, r=20, t=60, b=120)
+            xaxis_tickangle=-30,
+            margin=dict(l=20, r=20, t=60, b=120),
+            showlegend=False
         )
-
+        fig3.update_traces(
+            texttemplate='%{y:.1%}',
+            textposition='outside'
+        )
         st.plotly_chart(fig3, use_container_width=True)
 
     else:

@@ -272,6 +272,7 @@ with tab5:
     - Build a county-level risk visualization to support healthcare access planning.
     - Eventually create a decision-support prototype for identifying structural access gaps.
     """)
+
 with tab6:
     st.subheader("Mental Health and Avoidable ED Utilization")
 
@@ -282,21 +283,21 @@ with tab6:
     use the ED as an entry point into care.
     """)
 
-   df["mental_health_dx"] = (
-    df["apr_mdc_description"]
-    .astype(str)
-    .str.lower()
-    .str.contains("mental", na=False)
-)
+    df["mental_health_dx"] = (
+        df["apr_mdc_description"]
+        .astype(str)
+        .str.lower()
+        .str.contains("mental", na=False)
+    )
 
     mh_summary = (
-    df.groupby("mental_health_dx")["avoidable_ed"]
-    .mean()
-    .rename(index={
-        False: "No Mental Health Diagnosis",
-        True: "Mental Health Diagnosis"
-    })
-)
+        df.groupby("mental_health_dx")["avoidable_ed"]
+        .mean()
+        .rename(index={
+            False: "No Mental Health Diagnosis",
+            True: "Mental Health Diagnosis"
+        })
+    )
 
     st.subheader("Avoidable ED Rate by Mental Health Diagnosis")
 
@@ -311,21 +312,21 @@ with tab6:
 
     mh_df = df[df["mental_health_dx"] == True]
 
-if mh_df.empty:
-    st.warning("No mental health diagnosis records were found in this sample.")
-else:
-    mh_payer_summary = (
-        mh_df.groupby("payment_typology_1")["avoidable_ed"]
-        .mean()
-        .sort_values(ascending=False)
-    )
+    if mh_df.empty:
+        st.warning("No mental health diagnosis records were found in this sample.")
+    else:
+        mh_payer_summary = (
+            mh_df.groupby("payment_typology_1")["avoidable_ed"]
+            .mean()
+            .sort_values(ascending=False)
+        )
 
-    fig8, ax8 = plt.subplots(figsize=(10, 5))
-    mh_payer_summary.plot(kind="bar", ax=ax8)
-    ax8.set_ylabel("Avoidable ED Rate")
-    ax8.set_xlabel("Primary Payer")
-    ax8.tick_params(axis="x", rotation=45)
-    st.pyplot(fig8)
+        fig8, ax8 = plt.subplots(figsize=(10, 5))
+        mh_payer_summary.plot(kind="bar", ax=ax8)
+        ax8.set_ylabel("Avoidable ED Rate")
+        ax8.set_xlabel("Primary Payer")
+        ax8.tick_params(axis="x", rotation=45)
+        st.pyplot(fig8)
 
     st.subheader("Interpretation")
 

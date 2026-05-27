@@ -156,7 +156,7 @@ with tab2:
 
     fig1, ax1 = plt.subplots(figsize=(10,5))
 
-    payer_summary.plot(kind="bar", ax=ax1)
+    payer_summary.plot(kind="barh", ax=ax1)
 
     ax1.set_ylabel("Avoidable ED Rate")
     ax1.set_xlabel("Insurance Type")
@@ -288,7 +288,7 @@ with tab5:
 
     fig2, ax2 = plt.subplots(figsize=(8,5))
 
-    mh_summary.plot(kind="bar", ax=ax2)
+    mh_summary.plot(kind="barh", ax=ax2)
 
     ax2.set_ylabel("Avoidable ED Rate")
     ax2.tick_params(axis="x", rotation=0)
@@ -309,7 +309,7 @@ with tab5:
 
         fig3, ax3 = plt.subplots(figsize=(10,5))
 
-        mh_payer_summary.plot(kind="bar", ax=ax3)
+        mh_payer_summary.plot(kind="barh", ax=ax3)
 
         ax3.set_ylabel("Avoidable ED Rate")
         ax3.set_xlabel("Insurance Type")

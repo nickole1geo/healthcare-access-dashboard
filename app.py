@@ -35,13 +35,23 @@ df["avoidable_ed"] = (
     .astype(int)
 )
 
+st.subheader("Key Metrics")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric("Total ED-Related Cases", len(df))
+
+with col2:
+    st.metric("Potentially Avoidable ED Rate", f"{df['avoidable_ed'].mean():.1%}")
+
 # TITLE
 st.subheader("Discharges by Primary Payer")
 
 # GRAPH
 fig1, ax1 = plt.subplots()
 
-df["payment_typology_1"].value_counts().head(10).plot(
+filtered_df["payment_typology_1"].value_counts().head(10).plot(
     kind="bar",
     ax=ax1
 )
@@ -55,7 +65,7 @@ st.pyplot(fig1)
 st.subheader("Potentially Avoidable ED Rate by Insurance Type")
 
 payer_summary = (
-    df.groupby("payment_typology_1")["avoidable_ed"]
+    filtered_df.groupby("payment_typology_1")["avoidable_ed"]
     .mean()
     .sort_values(ascending=False)
 )

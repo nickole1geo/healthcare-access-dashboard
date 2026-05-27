@@ -297,16 +297,22 @@ with tab5:
         x="Avoidable ED Rate",
         y="Mental Health Status",
         orientation="h",
-        color="Avoidable ED Rate",
-        color_continuous_scale="Blues",
+        text="Avoidable ED Rate",
+        color_discrete_sequence=["#1f77b4"],
         title="Avoidable ED Utilization by Mental Health Status"
-    )
+    )    
 
     fig2.update_layout(
-        height=400,
-        title_font_size=22,
-        font_size=14,
-        margin=dict(l=20, r=20, t=60, b=20)
+        height=350,
+        title_font_size=24,
+        font_size=15,
+        margin=dict(l=20, r=20, t=60, b=20),
+        showlegend=False
+    )
+
+    fig2.update_traces(
+        texttemplate='%{x:.1%}',
+        textposition='outside'
     )
 
     st.plotly_chart(fig2, use_container_width=True)

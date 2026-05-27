@@ -58,7 +58,9 @@ if selected_payer == "All":
     filtered_df = df.copy()
 else:
     filtered_df = df[df["payment_typology_1"] == selected_payer]
-
+    
+st.write(f"Current filter: {selected_payer}")
+st.write(f"Records shown: {len(filtered_df)}")
 
 # TITLE
 st.subheader("Discharges by Primary Payer")

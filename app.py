@@ -45,6 +45,21 @@ with col1:
 with col2:
     st.metric("Potentially Avoidable ED Rate", f"{df['avoidable_ed'].mean():.1%}")
 
+st.sidebar.header("Filters")
+
+payer_options = df["payment_typology_1"].dropna().unique()
+
+selected_payer = st.sidebar.selectbox(
+    "Select Insurance Type",
+    ["All"] + list(payer_options)
+)
+
+if selected_payer == "All":
+    filtered_df = df.copy()
+else:
+    filtered_df = df[df["payment_typology_1"] == selected_payer]
+
+
 # TITLE
 st.subheader("Discharges by Primary Payer")
 

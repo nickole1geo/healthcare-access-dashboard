@@ -294,50 +294,50 @@ with tab5:
         "Avoidable ED Rate"
     ]
 
-fig2 = px.bar(
-    mh_df_plot,
-    x="Avoidable ED Rate",
-    y="Mental Health Status",
-    orientation="h",
-    color="Avoidable ED Rate",
-    color_continuous_scale="Blues",
-    title="Avoidable ED Utilization by Mental Health Status"
-)
-
-fig2.update_layout(
-    height=400,
-    title_font_size=22,
-    font_size=14
-)
-
-st.plotly_chart(fig2, use_container_width=True)
-
+    fig2 = px.bar(
+        mh_df_plot,
+        x="Avoidable ED Rate",
+        y="Mental Health Status",
+        orientation="h",
+        color="Avoidable ED Rate",
+        color_continuous_scale="Blues",
+        title="Avoidable ED Utilization by Mental Health Status"
+    )
+    
+    fig2.update_layout(
+        height=400,
+        title_font_size=22,
+        font_size=14
+    )
+    
+    st.plotly_chart(fig2, use_container_width=True)
+    
     mh_df = df[df["mental_health_dx"] == True]
-
+    
     st.subheader("Avoidable ED Rate by Insurance Type Among Mental Health Visits")
-
+    
     if len(mh_df) > 0:
-
+    
         mh_payer_summary = (
             mh_df.groupby("payment_typology_1")["avoidable_ed"]
             .mean()
             .sort_values(ascending=False)
         )
-
+    
         fig3, ax3 = plt.subplots(figsize=(7,4))
-
+    
         mh_payer_summary.plot(kind="bar", ax=ax3)
-
+    
         ax3.set_ylabel("Avoidable ED Rate")
         ax3.set_xlabel("Insurance Type")
         ax3.tick_params(axis="x", rotation=45)
-
+    
         st.pyplot(fig3)
-
-    st.subheader("Interpretation")
-
-    st.write("""
-    Mental health-related ED utilization may reflect barriers in
-    outpatient psychiatric access, crisis intervention availability,
-    and continuity of behavioral healthcare.
-    """)
+    
+        st.subheader("Interpretation")
+    
+        st.write("""
+        Mental health-related ED utilization may reflect barriers in
+        outpatient psychiatric access, crisis intervention availability,
+        and continuity of behavioral healthcare.
+        """)

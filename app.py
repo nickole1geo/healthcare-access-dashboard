@@ -153,6 +153,7 @@ with tab2:
         filtered_df.groupby("payment_typology_1")["avoidable_ed"]
         .mean()
         .sort_values(ascending=False)
+        .reset_index()
     )
 
     payer_summary.columns = [

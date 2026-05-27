@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    "figure.autolayout": True
+})
+
 # PAGE TITLE
 st.title("Healthcare Access Dashboard Using NY SPARCS Data")
 
@@ -93,7 +97,7 @@ with tab1:
 with tab2:
     st.subheader("Discharges by Primary Payer")
 
-    fig1, ax1 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     filtered_df["payment_typology_1"].value_counts().head(10).plot(
         kind="bar",
         ax=ax1
@@ -110,7 +114,7 @@ with tab2:
         .sort_values(ascending=False)
     )
 
-    fig2, ax2 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     payer_summary.plot(kind="bar", ax=ax2)
     ax2.set_ylabel("Avoidable ED Rate")
     ax2.set_xlabel("Primary Payer")
@@ -121,7 +125,7 @@ with tab3:
 
     county_counts = filtered_df["hospital_county"].value_counts().head(15)
 
-    fig3, ax3 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     county_counts.plot(kind="bar", ax=ax3)
     ax3.set_ylabel("Number of ED-Related Discharges")
     ax3.set_xlabel("Hospital County")
@@ -136,7 +140,7 @@ with tab3:
         .head(15)
     )
 
-    fig4, ax4 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     county_avoidable.plot(kind="bar", ax=ax4)
     ax4.set_ylabel("Avoidable ED Rate")
     ax4.set_xlabel("Hospital County")
@@ -183,7 +187,7 @@ with tab4:
 
     st.metric("ROC AUC Score", f"{auc:.3f}")
 
-    fig5, ax5 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     RocCurveDisplay.from_estimator(model, X_test, y_test, ax=ax5)
     ax5.set_title("ROC Curve: Avoidable ED Prediction Model")
     st.pyplot(fig5)
@@ -206,7 +210,7 @@ with tab4:
         .sort_values("coefficient")
     )
 
-    fig6, ax6 = plt.subplots(figsize=(8, 6))
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     ax6.barh(top_features["feature"], top_features["coefficient"])
     ax6.set_xlabel("Model Coefficient")
     ax6.set_title("Top Model Predictors")

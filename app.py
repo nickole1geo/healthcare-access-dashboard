@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import numpy as np
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 
@@ -286,14 +287,30 @@ with tab5:
         "Mental Health Diagnosis"
     ]
 
-    fig2, ax2 = plt.subplots(figsize=(8,5))
+    mh_df_plot = mh_summary.reset_index()
 
-    mh_summary.plot(kind="bar", ax=ax2)
+mh_df_plot.columns = [
+    "Mental Health Status",
+    "Avoidable ED Rate"
+]
 
-    ax2.set_ylabel("Avoidable ED Rate")
-    ax2.tick_params(axis="x", rotation=0)
+fig2 = px.bar(
+    mh_df_plot,
+    x="Avoidable ED Rate",
+    y="Mental Health Status",
+    orientation="h",
+    color="Avoidable ED Rate",
+    color_continuous_scale="Blues",
+    title="Avoidable ED Utilization by Mental Health Status"
+)
 
-    st.pyplot(fig2)
+fig2.update_layout(
+    height=400,
+    title_font_size=22,
+    font_size=14
+)
+
+st.plotly_chart(fig2, use_container_width=True)
 
     mh_df = df[df["mental_health_dx"] == True]
 

@@ -169,3 +169,31 @@ with tab4:
     RocCurveDisplay.from_estimator(model, X_test, y_test, ax=ax5)
     ax5.set_title("ROC Curve: Avoidable ED Prediction Model")
     st.pyplot(fig5)
+
+    st.subheader("Top Predictors of Potentially Avoidable ED Classification")
+
+    import numpy as np
+
+    coef_df = pd.DataFrame({
+        "feature": X_train.columns,
+        "coefficient": model.coef_[0],
+        "odds_ratio": np.exp(model.coef_[0])
+    })
+
+    coef_df["abs_coefficient"] = coef_df["coefficient"].abs()
+
+    top_features = (
+        coef_df.sort_values("abs_coefficient", ascending=False)
+        .head(15)
+        .sort_values("coefficient")
+    )
+
+    fig6, ax6 = plt.subplots(figsize=(8, 6))
+    ax6.barh(top_features["feature"], top_features["coefficient"])
+    ax6.set_xlabel("Model Coefficient")
+    ax6.set_title("Top Model Predictors")
+    st.pyplot(fig6)
+
+    st.dataframe(
+        top_features[["feature", "coefficient", "odds_ratio"]]
+    )

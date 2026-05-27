@@ -30,7 +30,7 @@ def load_sparcs_data(limit=1258855):
 
     return pd.concat(chunks, ignore_index=True)
 
-df = load_sparcs_data(limit=1258855)
+df = load_sparcs_data(limit=500000)
 
 # CLEAN DATA
 df.columns = df.columns.str.lower()

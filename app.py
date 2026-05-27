@@ -267,7 +267,6 @@ with tab4:
 
 # MENTAL HEALTH TAB
 with tab5:
-    with tab5:
 
     st.header("Mental Health Analysis")
 

@@ -155,19 +155,37 @@ with tab2:
         .sort_values(ascending=False)
     )
 
-    fig1, ax1 = plt.subplots(figsize=(7,4))
+    payer_summary.columns = [
+        "Insurance Type",
+        "Avoidable ED Rate"
+    ]
+    
+    fig1 = px.bar(
+        payer_summary,
+        x="Insurance Type",
+        y="Avoidable ED Rate",
+        text="Avoidable ED Rate",
+        color_discrete_sequence=["#1f77b4"],
+        title="Potentially Avoidable ED Utilization by Insurance Type"
+    )
 
-    payer_summary.plot(kind="bar", ax=ax1)
+    fig1.update_layout(
+        height=450,
+        title_font_size=24,
+        font_size=15,
+        xaxis_tickangle=-30,
+        margin=dict(l=20, r=20, t=60, b=120),
+        showlegend=False
+    )
+    
+    fig1.update_traces(
+        texttemplate='%{y:.1%}',
+        textposition='outside'
+    )
 
-    ax1.set_ylabel("Avoidable ED Rate")
-    ax1.set_xlabel("Insurance Type")
-    ax1.tick_params(axis="x", rotation=45)
+    st.plotly_chart(fig1, use_container_width=True)
 
-    st.pyplot(fig1)
-
-    st.subheader("Interpretation")
-
-    st.write("""
+    st.caption("""
     Differences across insurance categories may reflect variation in
     outpatient access, care coordination, referral systems,
     and healthcare utilization patterns.

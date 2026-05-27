@@ -17,12 +17,31 @@ using de-identified NY SPARCS hospital discharge data.
 """)
 
 # LOAD DATA
-url = "https://health.data.ny.gov/resource/5dtw-tffi.csv?$limit=50000"
+@st.cache_data(show_spinner="Loading SPARCS data...")
+def load_sparcs_data(limit=1258855):
+    base_url = "https://health.data.ny.gov/resource/5dtw-tffi.csv"
+    chunk_size = 50000
+    chunks = []
 
-df = pd.read_csv(url, low_memory=False)
+    for offset in range(0, limit, chunk_size):
+        url = f"{base_url}?$limit={chunk_size}&$offset={offset}"
+        chunk = pd.read_csv(url, low_memory=False)
+        chunks.append(chunk)
+
+    return pd.concat(chunks, ignore_index=True)
+
+df = load_sparcs_data(limit=1258855)
 
 # CLEAN DATA
 df.columns = df.columns.str.lower()
+
+df.columns = (
+    df.columns
+    .str.lower()
+    .str.replace(" ", "_")
+    .str.replace("/", "_")
+    .str.replace("-", "_")
+)
 
 # CREATE AVOIDABLE ED VARIABLE
 df["avoidable_ed"] = np.where(
